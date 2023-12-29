@@ -8,28 +8,22 @@ using var connection = factory.CreateConnection();
 
 var channel = connection.CreateModel();
 
-channel.ExchangeDeclare(exchange:"logs-direct",durable:true,type:ExchangeType.Direct);
+channel.ExchangeDeclare(exchange:"logs-topic",durable:true,type:ExchangeType.Topic);
 
-Enum.GetNames(typeof(LogNames)).ToList().ForEach(x =>
-{
-    var routeKey = $"route-{x}";
-    var queueName = $"direct-queue-{x}";
-    channel.QueueDeclare(queueName,true,false,false);
-
-    channel.QueueBind(queueName,"logs-direct",routeKey);
-});
+Random rnd = new Random();
 
 Enumerable.Range(1,50).ToList().ForEach(x =>
 {
-    LogNames log = (LogNames) new Random().Next(1,5);
+    LogNames log1 = (LogNames)rnd.Next(1, 5);
+    LogNames log2 = (LogNames)rnd.Next(1, 5);
+    LogNames log3 = (LogNames)rnd.Next(1, 5);
 
-    string message = $"Log-type: {log}";
+    var routeKey = $"{log1}.{log2}.{log3}";
 
+    string message = $"Log-type: {log1}-{log2}-{log3}";
     var messageBody = Encoding.UTF8.GetBytes(message);
 
-    var routeKey = $"route-{log}";
-
-    channel.BasicPublish(exchange:"logs-direct",routingKey:routeKey, null, messageBody);
+    channel.BasicPublish(exchange:"logs-topic",routingKey:routeKey, null, messageBody);
 
     Console.WriteLine($"Log gönderilmiştir : {message}");
 });
