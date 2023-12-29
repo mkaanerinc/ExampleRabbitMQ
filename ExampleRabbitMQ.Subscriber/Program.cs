@@ -9,15 +9,12 @@ using var connection = factory.CreateConnection();
 
 var channel = connection.CreateModel();
 
-var randomQueueName = channel.QueueDeclare().QueueName; // Random name for queue
-
-channel.QueueBind(randomQueueName,"logs-fanout","",null); // Queue will be deleted when consumer stooped.
-
 channel.BasicQos(0,1,false);
 
 var consumer = new EventingBasicConsumer(channel);
 
-channel.BasicConsume(randomQueueName,false,consumer);
+var queueName = "direct-queue-Critical";
+channel.BasicConsume(queueName,false,consumer);
 
 Console.WriteLine("Loglar dinleniyor...");
 
@@ -28,6 +25,8 @@ consumer.Received += (object sender, BasicDeliverEventArgs e) =>
     Thread.Sleep(1500);
 
     Console.WriteLine("Gelen Mesaj:" + message);
+
+    //File.AppendAllText("log-critical.txt",message + "\n");
 
     channel.BasicAck(e.DeliveryTag,false);
 };
