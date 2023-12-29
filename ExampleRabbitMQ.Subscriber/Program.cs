@@ -15,9 +15,13 @@ var consumer = new EventingBasicConsumer(channel);
 
 var queueName = channel.QueueDeclare().QueueName;
 
-var routeKey = "*.Error.*"; 
+Dictionary<string,object> headers = new Dictionary<string, object>();
 
-channel.QueueBind(queueName,"logs-topic",routeKey);
+headers.Add("format", "pdf");
+headers.Add("shape", "a4");
+headers.Add("x-match", "all");
+
+channel.QueueBind(queueName,"header-exchange", string.Empty, headers);
 
 channel.BasicConsume(queueName,false,consumer);
 
@@ -30,8 +34,6 @@ consumer.Received += (object sender, BasicDeliverEventArgs e) =>
     Thread.Sleep(1500);
 
     Console.WriteLine("Gelen Mesaj:" + message);
-
-    //File.AppendAllText("log-critical.txt",message + "\n");
 
     channel.BasicAck(e.DeliveryTag,false);
 };
